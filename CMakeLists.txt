@@ -36,7 +36,7 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(PicoEyes main.cpp )
-
+add_compile_definitions(USE_PICO_SDK)
 pico_set_program_name(PicoEyes "PicoEyes")
 pico_set_program_version(PicoEyes "0.1")
 
@@ -46,7 +46,8 @@ pico_enable_stdio_usb(PicoEyes 0)
 
 # Add the standard library to the build
 target_link_libraries(PicoEyes
-        pico_stdlib)
+        pico_stdlib
+        lib/Adafruit_BusIO)
 
 # Add the standard include files to the build
 target_include_directories(PicoEyes PRIVATE
