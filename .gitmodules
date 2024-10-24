@@ -1,0 +1,3 @@
+[submodule "lib/Adafruit_BusIO"]
+	path = lib/Adafruit_BusIO
+	url = https://github.com/Fortinbra/Adafruit_BusIO.git
