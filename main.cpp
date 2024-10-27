@@ -2,25 +2,58 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/uart.h"
+#include "include/defaultEye.h"
+#include "lib/Adafruit-SSD1351-library/Adafruit_SSD1351.h"
 
-// SPI Defines
-// We are going to use SPI 0, and allocate it to the following GPIO pins
-// Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
+const uint16_t (*sclera)[SCLERA_WIDTH] = scleraDefault;
+const uint8_t (*upper)[SCREEN_WIDTH] = upperDefault;
+const uint8_t (*lower)[SCREEN_WIDTH] = lowerDefault;
+const uint16_t (*polar)[80] = polarDefault;
+const uint16_t (*iris)[IRIS_MAP_WIDTH] = irisDefault;
+
 #define SPI_PORT spi0
-#define PIN_MISO 16
-#define PIN_CS   17
-#define PIN_SCK  18
-#define PIN_MOSI 19
+#define DISPLAY_DC      16 // Data/command pin for BOTH displays
+#define DISPLAY_RESET   5 // Reset pin for BOTH displays
+#define SELECT_L_PIN    17 // LEFT eye chip select pin
+#define SELECT_R_PIN    04 // RIGHT eye chip select pin
+#define UART_RX_PIN     13 // Pin to receive UART commands from controller
+#define MOSI_PIN  23
+#define SCLK_PIN  18
+
+#define TRACKING          // If enabled, eyelid tracks pupil
+#define IRIS_SMOOTH       // If enabled, filter input from IRIS_PIN
+#define IRIS_MIN      150 // Clip lower analogRead() range from IRIS_PIN (WAS: 120) - Reduced range so that it doesn't look to odd with multiple eye pairs
+#define IRIS_MAX      400 // Clip upper "                                (WAS: 720) - Reduced range so that it doesn't look to odd with multiple eye pairs
+#define AUTOBLINK        // If enabled, eyes blink autonomously
+
+/ Eye blinks are a tiny 3-state machine.  Per-eye allows winks + blinks.
+#define NOBLINK 0     // Not currently engaged in a blink
+#define ENBLINK 1     // Eyelid is currently closing
+#define DEBLINK 2     // Eyelid is currently opening
+typedef struct {
+  uint8_t  state;     // NOBLINK/ENBLINK/DEBLINK
+  uint32_t duration;  // Duration of blink state (micros)
+  uint32_t startTime; // Time (micros) of last state change
+} eyeBlink;
+
+struct {
+    displayType display;
+    uint8_t cs;
+    eyeBlink blink;
+} eye[] ={
+    Adafruit_SSD1351(128, 128, SCLK_PIN, MOSI_PIN, DISPLAY_DC, DISPLAY_RESET, SELECT_L_PIN),SELECT_L_PIN,{NOBLINK},
+}
+
 
 // UART defines
 // By default the stdout UART is `uart0`, so we will use the second one
-#define UART_ID uart1
+#define UART_ID uart0
 #define BAUD_RATE 115200
 
 // Use pins 4 and 5 for UART1
 // Pins can be changed, see the GPIO function select table in the datasheet for information on GPIO assignments
-#define UART_TX_PIN 4
-#define UART_RX_PIN 5
+#define UART_TX_PIN 0
+#define UART_RX_PIN 1
 
 
 

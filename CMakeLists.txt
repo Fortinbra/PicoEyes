@@ -44,6 +44,8 @@ pico_set_program_version(PicoEyes "0.1")
 pico_enable_stdio_uart(PicoEyes 1)
 pico_enable_stdio_usb(PicoEyes 0)
 # Add the standard library to the build
+add_subdirectory(lib)
+add_subdirectory(include)
 
 target_link_libraries(PicoEyes
 pico_stdlib
@@ -58,7 +60,6 @@ target_include_directories(PicoEyes PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
-add_subdirectory(lib)
 
 
 pico_add_extra_outputs(PicoEyes)
