@@ -43,7 +43,6 @@ pico_set_program_version(PicoEyes "0.1")
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(PicoEyes 1)
 pico_enable_stdio_usb(PicoEyes 0)
-add_subdirectory(lib)
 # Add the standard library to the build
 
 target_link_libraries(PicoEyes
@@ -51,13 +50,15 @@ pico_stdlib
 hardware_gpio
 hardware_spi
 hardware_i2c
-lib/Adafruit_BusIO)
+Adafruit_BusIO
+Adafruit_GFX)
 
 # Add the standard include files to the build
 target_include_directories(PicoEyes PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
 )
+add_subdirectory(lib)
 
 
 pico_add_extra_outputs(PicoEyes)
