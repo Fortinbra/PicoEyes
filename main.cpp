@@ -3,6 +3,7 @@
 #include "hardware/spi.h"
 #include "hardware/uart.h"
 #include "include/defaultEye.h"
+#include "lib/Adafruit-GFX-Library-Pico/Adafruit_GFX.h"
 #include "lib/Adafruit-SSD1351-library/Adafruit_SSD1351.h"
 
 const uint16_t (*sclera)[SCLERA_WIDTH] = scleraDefault;
@@ -10,6 +11,7 @@ const uint8_t (*upper)[SCREEN_WIDTH] = upperDefault;
 const uint8_t (*lower)[SCREEN_WIDTH] = lowerDefault;
 const uint16_t (*polar)[80] = polarDefault;
 const uint16_t (*iris)[IRIS_MAP_WIDTH] = irisDefault;
+typedef Adafruit_SSD1351 displayType; // Using OLED display(s)
 
 #define SPI_PORT spi0
 #define DISPLAY_DC      16 // Data/command pin for BOTH displays
@@ -26,7 +28,7 @@ const uint16_t (*iris)[IRIS_MAP_WIDTH] = irisDefault;
 #define IRIS_MAX      400 // Clip upper "                                (WAS: 720) - Reduced range so that it doesn't look to odd with multiple eye pairs
 #define AUTOBLINK        // If enabled, eyes blink autonomously
 
-/ Eye blinks are a tiny 3-state machine.  Per-eye allows winks + blinks.
+// Eye blinks are a tiny 3-state machine.  Per-eye allows winks + blinks.
 #define NOBLINK 0     // Not currently engaged in a blink
 #define ENBLINK 1     // Eyelid is currently closing
 #define DEBLINK 2     // Eyelid is currently opening
@@ -42,7 +44,10 @@ struct {
     eyeBlink blink;
 } eye[] ={
     Adafruit_SSD1351(128, 128, SCLK_PIN, MOSI_PIN, DISPLAY_DC, DISPLAY_RESET, SELECT_L_PIN),SELECT_L_PIN,{NOBLINK},
-}
+    Adafruit_SSD1351(128, 128, SCLK_PIN, MOSI_PIN, DISPLAY_DC, DISPLAY_RESET, SELECT_R_PIN), SELECT_L_PIN,{NOBLINK},
+
+};
+#define NUM_EYES (sizeof(eye) / sizeof(eye[0]));
 
 
 // UART defines
@@ -63,15 +68,28 @@ int main()
 
     // SPI initialisation. This example will use SPI at 1MHz.
     spi_init(SPI_PORT, 1000*1000);
-    gpio_set_function(PIN_MISO, GPIO_FUNC_SPI);
-    gpio_set_function(PIN_CS,   GPIO_FUNC_SIO);
-    gpio_set_function(PIN_SCK,  GPIO_FUNC_SPI);
-    gpio_set_function(PIN_MOSI, GPIO_FUNC_SPI);
+    gpio_set_function(SELECT_L_PIN,   GPIO_FUNC_SIO);
+    gpio_set_function(SELECT_R_PIN,   GPIO_FUNC_SIO);
+    gpio_set_function(SCLK_PIN,  GPIO_FUNC_SPI);
+    gpio_set_function(MOSI_PIN, GPIO_FUNC_SPI);
+    gpio_set_dir(DISPLAY_RESET, GPIO_OUT);
+    gpio_put(DISPLAY_RESET, 0);
+    sleep_ms(1);
+    gpio_put(DISPLAY_RESET, 1);
+    sleep_ms(50);
     
     // Chip select is active-low, so we'll initialise it to a driven-high state
-    gpio_set_dir(PIN_CS, GPIO_OUT);
-    gpio_put(PIN_CS, 1);
-    // For more examples of SPI use see https://github.com/raspberrypi/pico-examples/tree/master/spi
+    gpio_set_dir(SELECT_L_PIN, GPIO_OUT);
+    gpio_set_dir(SELECT_R_PIN, GPIO_OUT);
+    gpio_put(SELECT_L_PIN, 1);
+    gpio_put(SELECT_R_PIN, 1);
+
+    gpio_put(SELECT_L_PIN, 0);
+    eye[0].display.begin();
+    gpio_put(SELECT_L_PIN, 1);
+    gpio_put(SELECT_R_PIN, 0);
+    eye[1].display.begin();
+    gpio_put(SELECT_R_PIN, 1);
 
     // Set up our UART
     uart_init(UART_ID, BAUD_RATE);
