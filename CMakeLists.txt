@@ -45,7 +45,7 @@ pico_enable_stdio_uart(PicoEyes 1)
 pico_enable_stdio_usb(PicoEyes 0)
 # Add the standard library to the build
 add_subdirectory(lib)
-add_subdirectory(include)
+add_subdirectory(inc)
 
 target_link_libraries(PicoEyes
 pico_stdlib
