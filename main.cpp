@@ -2,7 +2,7 @@
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "hardware/uart.h"
-#include "include/defaultEye.h"
+#include "inc/defaultEye.h"
 #include "lib/Adafruit-GFX-Library-Pico/Adafruit_GFX.h"
 #include "lib/Adafruit-SSD1351-library/Adafruit_SSD1351.h"
 
